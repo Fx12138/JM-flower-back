@@ -10,6 +10,7 @@ const app = express()
 //引入flowerRoom.js,这个是flowerRoom相关的路由
 const flowerRoom = require('./router/api/flowerRoom')
 const user = require('./router/api/user')
+const flowerGame = require('./router/api/flowerGame')
 
 //使用body-parser中间件
 app.use(bodyParser.json())
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 //使用各个模块的路由
 app.use("/api/flowerRoom", flowerRoom)
 app.use("/api/user", user)
+app.use("/api/flowerGame", flowerGame)
 
 
 //连接数据库

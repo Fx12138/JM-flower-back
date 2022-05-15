@@ -8,6 +8,10 @@ var roomSchema = new Schema({
         type: String,
         default: "000000"
     },
+    roomName: {
+        type: String,
+        default: "我show hands,你敢跟吗?"
+    },
     roomInfo: {
         status: {
             type: Number,

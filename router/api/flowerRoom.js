@@ -11,6 +11,12 @@ function getRoomById(roomId) {
     })
 }
 
+//获取房间列表
+router.get('/rooms', (req, res) => {
+    FlowerRoom.find().then((rooms) => {
+        return res.json(resJson(rooms, '获取成功', 200))
+    })
+})
 /**
  * 创建房间
  */
@@ -63,11 +69,11 @@ router.post("/inRoom", (req, res) => {
             }
             if (room.flowerUserList.length < 6) {
                 let newUser = {
-                    id: room.flowerUserList.size - 1,
+                    id: room.flowerUserList.length + 1,
                     username: req.body.username
                 }
                 flowerUserList.push(newUser)
-
+                console.log(newUser)
                 // 更新数据的条件查询
                 var wherestr = { 'roomId': req.body.roomId };
                 // 执行更新数据
@@ -84,7 +90,7 @@ router.post("/inRoom", (req, res) => {
             }
 
         } else {
-            return res.json(resJson(null, '房间不存在', 403,))
+            return res.json(resJson(null, '房间不存在', 404))
         }
     })
 
