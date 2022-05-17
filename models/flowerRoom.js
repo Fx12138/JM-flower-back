@@ -6,7 +6,7 @@ var roomSchema = new Schema({
     roomId: String,
     password: {
         type: String,
-        default: "000000"
+        default: ""
     },
     roomName: {
         type: String,

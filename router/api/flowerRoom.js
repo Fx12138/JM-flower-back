@@ -10,6 +10,12 @@ function getRoomById(roomId) {
         return room
     })
 }
+//根据id获取房间
+router.get('/room', (req, res) => {
+    FlowerRoom.findOne({ roomId: req.query.roomId }).then((room) => {
+        return res.json(resJson(room, '获取成功', 200))
+    })
+})
 
 //获取房间列表
 router.get('/rooms', (req, res) => {
@@ -35,20 +41,22 @@ router.post('/createRoom', function (req, res) {
     //创建房间
     FlowerRoom.findOne({ roomId: roomId }).then((room) => {
         if (room) {
-            return res.status(400).json({ msg: "房间已经存在" })
+            return res.json(resJson(room, '房间已存在', 401))
         } else {
             //添加数据
             const room = new FlowerRoom({
                 roomId: roomId,
+                roomName: req.body.roomName,
+                password: req.body.password,
                 flowerUserList: [
                     {
                         id: 0,
-                        username: req.body.username,
+                        username: req.body.user.username,
                     },
                 ],
             });
             room.save().then(() => console.log('创建成功'));
-            return res.status(200).json({ msg: "房间创建成功", data: room })
+            return res.json(resJson(room, '创建成功', 200))
         }
     })
 
@@ -59,6 +67,9 @@ router.post("/inRoom", (req, res) => {
     let flowerUserList = []
     FlowerRoom.findOne({ roomId: req.body.roomId }).then((room) => {
         if (room) {
+            if (room.password != req.body.password) {
+                return res.json(resJson(null, '密码错误', 401))
+            }
             flowerUserList = room.flowerUserList
             let isContain = flowerUserList.find(
                 (user) => user.username == req.body.username
