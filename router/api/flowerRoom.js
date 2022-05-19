@@ -55,8 +55,9 @@ router.post('/createRoom', function (req, res) {
                     },
                 ],
             });
-            room.save().then(() => console.log('创建成功'));
-            return res.json(resJson(room, '创建成功', 200))
+            room.save().then(() => {
+                return res.json(resJson(room, '创建成功', 200))
+            });
         }
     })
 
@@ -67,24 +68,18 @@ router.post("/inRoom", (req, res) => {
     let flowerUserList = []
     FlowerRoom.findOne({ roomId: req.body.roomId }).then((room) => {
         if (room) {
+            //判断密码
             if (room.password != req.body.password) {
                 return res.json(resJson(null, '密码错误', 401))
             }
+            //密码正确
             flowerUserList = room.flowerUserList
-            let isContain = flowerUserList.find(
-                (user) => user.username == req.body.username
-            );
-            if (isContain) {
-                // return res.json(resJson(null, '已在房间内', 400))
-                return res.json(resJson(room.flowerUserList, '进入成功', 200))
-            }
-            if (room.flowerUserList.length < 6) {
+            if (flowerUserList.length < 6) {
                 let newUser = {
-                    id: room.flowerUserList.length + 1,
+                    id: room.flowerUserList.length,
                     username: req.body.username
                 }
                 flowerUserList.push(newUser)
-                console.log(newUser)
                 // 更新数据的条件查询
                 var wherestr = { 'roomId': req.body.roomId };
                 // 执行更新数据
@@ -94,7 +89,6 @@ router.post("/inRoom", (req, res) => {
                     FlowerRoom.findOne({ roomId: req.body.roomId }).then((room) => {
                         return res.json(resJson(room.flowerUserList, '加入房间成功', 200))
                     })
-                    // return res.json(resJson(result, '加入房间成功', 200))
                 })
             } else {
                 return res.json(resJson(null, '房间人数已满', 400))
@@ -133,6 +127,40 @@ router.get('/outRoom', (req, res) => {
             return res.json(resJson(result, '退出房间', 200))
         })
     })
+})
+
+//保存房间信息
+router.post('/saveRoomStatus', (req, res) => {
+
+
+    let roomId = JSON.parse(req.body.roomInfo).roomId
+    let roomInfo = JSON.parse(req.body.roomInfo)
+    let flowerUserList = JSON.parse(req.body.flowerUserList)
+
+    FlowerRoom.findOne({ roomId: roomId }).then((room) => {
+
+        room.roomInfo = roomInfo
+        room.flowerUserList = flowerUserList
+        room.save().then(() => {
+            // console.log(room);
+
+        })
+
+    })
+
+    // // 更新数据的条件查询
+    // let roomId = req.body.roomInfo.roomInfo.roomId;
+
+    // var wherestr = { 'roomId': roomId };
+    // let flowerUserList = JSON.parse(req.body.roomInfo.flowerUserList)
+    // console.log(flowerUserList[5]);
+
+    // // 执行更新数据
+    // var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': req.body.roomInfo.roomInfo };
+
+    // FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
+    //     return res.json(resJson(result, '保存成功', 200))
+    // })
 })
 
 module.exports = router

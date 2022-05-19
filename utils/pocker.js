@@ -28,7 +28,8 @@ function creatPoker() {
                 name: forColor + forNum,
                 order: i * 4 + j,
                 power: i,
-                path: require("../../assets/images/cards/" + (i + 2) + "_" + (j + 1) + ".jpg"),
+                // path: "./cards/" + (i + 2) + "_" + (j + 1) + ".jpg",
+                path: "../../assets/images/cards/" + (i + 2) + "_" + (j + 1) + ".jpg",
             });
         }
     }
@@ -55,4 +56,4 @@ function orderPoker(cardsList) {
     return cardsList
 }
 
-module.exports = { shufflePoker, orderPoker }
+module.exports = { shufflePoker, orderPoker, creatPoker }

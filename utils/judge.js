@@ -1,12 +1,9 @@
-import { orderPoker } from './pocker'
+let pockerFun = require('./pocker')
+let orderPoker = pockerFun.orderPoker;
 //牌型
 //金子
 function isGold(cardList) {
     let color = cardList[0].color;
-    console.log(cardList[0].color);
-    console.log(cardList[1].color);
-    console.log(cardList[2].color);
-
     if (cardList[1].color == color && cardList[2].color == color) {
         return true;
     }
@@ -132,7 +129,7 @@ function getSingle(cardList) {
  * @returns 
  * 结果返回true是用户1赢,false是用户2赢
  */
-export function contrastSameType(cardType, cardList1, cardList2) {
+function contrastSameType(cardType, cardList1, cardList2) {
     switch (cardType) {
         //豹子
         case 0:
@@ -231,7 +228,7 @@ function isSingle(cardList) {
 
 //判别
 // 0豹子 1顺金 2金子 3顺子 4对子 5散牌
-export function judge(cardList) {
+function judge(cardList) {
     if (isGold(cardList)) {
         return 2
     } else if (isLeopard(cardList)) {
@@ -277,3 +274,5 @@ var quickSort = function (arr) {
     return quickSort(left).concat([pivot], quickSort(right));
 
 };
+
+module.exports = { contrastSameType, judge }

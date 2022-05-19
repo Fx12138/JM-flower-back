@@ -20,7 +20,7 @@ var roomSchema = new Schema({
         activeUser: {
             id: {
                 type: Number,
-                default: 0
+                default: 7
             },
             username: {
                 type: String,
@@ -31,6 +31,10 @@ var roomSchema = new Schema({
             id: {
                 type: Number,
                 default: 0
+            },
+            username: {
+                type: String,
+                default: ''
             },
         },
         coinPool: {
@@ -45,6 +49,14 @@ var roomSchema = new Schema({
             type: Number,
             default: 0
         },
+        aliveNumber: {   //存活玩家数量
+            type: Number,
+            default: 0
+        },
+        userNumber: {    //玩家数量
+            type: Number,
+            default: 0
+        }
     },
     flowerUserList: [
         {
@@ -62,9 +74,9 @@ var roomSchema = new Schema({
             },
             card: [{
                 color: String,
-                number: Number,
+                number: String,
                 name: String,
-                order: Number,
+                order: String,
                 power: Number,
                 path: String,
             }],
@@ -77,14 +89,15 @@ var roomSchema = new Schema({
                 type: Number,
                 default: 0
             },
-            cardStatus: {
+            cardStatus: {   //是否看牌 0未看,1看了
                 type: Number,
                 default: 0
-            }, //是否看牌 0未看,1看了
-            liveStatus: {
+            },
+            liveStatus: {   //是否弃牌或输 0输,1活着
                 type: Number,
                 default: 0
-            }, //是否弃牌或输 0输,1活着
+            },
+
         },
     ]
 })
