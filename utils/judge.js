@@ -1,5 +1,4 @@
 let pockerFun = require('./pocker')
-let orderPoker = pockerFun.orderPoker;
 //牌型
 //金子
 function isGold(cardList) {
@@ -148,8 +147,8 @@ function contrastSameType(cardType, cardList1, cardList2) {
             }
         //金子
         case 2:
-            let orderCardList1 = orderPoker(cardList1)
-            let orderCardList2 = orderPoker(cardList2)
+            let orderCardList1 = pockerFun.orderPoker(cardList1)
+            let orderCardList2 = pockerFun.orderPoker(cardList2)
             if (orderCardList1[2].power > orderCardList2[2].power) {
                 return true
             } else if (orderCardList1[2].power < orderCardList2[2].power) {
@@ -193,8 +192,8 @@ function contrastSameType(cardType, cardList1, cardList2) {
             }
         //散牌
         case 5:
-            let orderCardList3 = orderPoker(cardList1)
-            let orderCardList4 = orderPoker(cardList2)
+            let orderCardList3 = pockerFun.orderPoker(cardList1)
+            let orderCardList4 = pockerFun.orderPoker(cardList2)
             if (orderCardList3[2].power > orderCardList4[2].power) {
                 return true
                 break

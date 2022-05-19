@@ -38,11 +38,11 @@ io.sockets.on('connection', (socket) => {
         //通过房间id建立一个socketroom
         io.nsps['/'].adapter.rooms["room-" + data.roomId];
         socket.join("room-" + data.roomId);
-
+        let newUser = data.userInfo
         let flowerUserList = []
         FlowerRoom.findOne({ roomId: data.roomId }).then((room) => {
             flowerUserList = room.flowerUserList
-            io.sockets.in("room-" + data.roomId).emit('inFlowerRoom', resJson(flowerUserList));
+            io.sockets.in("room-" + data.roomId).emit('inFlowerRoom', resJson({ flowerUserList, newUser }));
 
         })
     })
@@ -125,11 +125,11 @@ io.sockets.on('connection', (socket) => {
             roomInfo = room.roomInfo;
             bottomCoin = roomInfo.bottomCoin;
             activeUserId = roomInfo.activeUser.id
-            activeUser = flowerUserList.filter((user) => {
+            flowerUserList.filter((user) => {
                 return user.id == activeUserId
-            })[0]
+            })[0].cardStatus = 1
 
-            activeUser.cardStatus = 1
+            // activeUser.cardStatus = 1
             room.roomInfo = roomInfo
             room.flowerUserList = flowerUserList
 
@@ -236,6 +236,12 @@ io.sockets.on('connection', (socket) => {
         })
     })
 
+    //等待比较状态
+    socket.on('chooseStatus', data => {
+        io.sockets.in("room-" + data.roomId).emit('chooseStatus', 2);
+        // socket.emit('chooseStatus', data)
+        // socket.broadcast.emit('chooseStatus', data)
+    })
 
     //比牌结果
     socket.on('contrastResult', data => {
