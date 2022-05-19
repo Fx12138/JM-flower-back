@@ -10,70 +10,13 @@ var io = require('socket.io')(server, { origins: '*:*' });
 let pockerFun = require('./utils/pocker')
 let judgeFun = require('./utils/judge')
 let randomNum = require('./utils/otherUtils')
-
 //引入
 const FlowerRoom = require('./models/flowerRoom')
 var resJson = require('./router/doc/resJson');
-
-//保存房间信息的map
-let roomInfoMap = new Map();
-
-
 //建立用户名到用户socket的映射关系
 let userSocketMap = new Map();
 
 
-function beginNewGame(room) {
-    let roomInfo = room.roomInfo;
-    let flowerUserList = room.flowerUserList
-    let activeUserId = room.roomInfo.activeUser.id;
-    let userNumber = room.flowerUserList.length;
-
-    //局数加1
-    roomInfo.gamesNumber += 1;
-    //设置存活玩家数量
-    roomInfo.aliveNumber = userNumber;
-    //设置为开局状态
-    roomInfo.status = 1;
-    //重置底分
-    roomInfo.bottomCoin = 1;
-    //重置锅底
-    roomInfo.coinPool = 0;
-    //发牌
-    for (let i = 0; i < userNumber; i++) {
-        flowerUserList[i].card.splice(0, flowerUserList[i].card.length);
-    }
-    let pockers = pockerFun.creatPoker()
-    let lastCards = 52;
-    lastCards = lastCards - userNumber * 3;
-    while (pockers.length > lastCards) {
-        //只要牌堆的牌大于应该剩余牌数，玩家继续摸牌
-        for (let i = 0; i < userNumber; i++) {
-            //玩家轮流摸牌
-            flowerUserList[i].card.push(pockers.pop());
-        }
-    }
-    //重置用户的信息
-    for (let i = 0; i < userNumber; i++) {
-        flowerUserList[i].cardStatus = 0; //设置还未看牌
-        flowerUserList[i].liveStatus = 1; //设置存活
-        flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card);
-    }
-    //设置上一局的赢家的下家为先手
-    let newActiveUser =
-        flowerUserList[
-        (roomInfo.lastWinner.id + 1) % userNumber
-        ];
-    roomInfo.activeUser.username = newActiveUser.username;
-    roomInfo.activeUser.id = newActiveUser.id;
-
-    room.roomInfo = roomInfo
-    room.flowerUserList = flowerUserList
-    console.log(room.flowerUserList);
-
-    return room
-
-}
 io.sockets.on('connection', (socket) => {
 
 
@@ -169,12 +112,6 @@ io.sockets.on('connection', (socket) => {
         })
     })
 
-    //activeUser
-    socket.on('activeUser', data => {
-        io.sockets.in("room-" + data.roomId).emit('activeUser', data.activeUser);
-        // socket.emit('activeUser', activeUser)
-        // socket.broadcast.emit('activeUser', activeUser)
-    })
 
     //看牌
     socket.on('seeCard', data => {
@@ -281,47 +218,6 @@ io.sockets.on('connection', (socket) => {
 
                 //五秒后开始下一局
                 setTimeout(() => {
-                    // //局数加1
-                    // roomInfo.gamesNumber += 1;
-                    // //设置存活玩家数量
-                    // aliveNumber = userNumber;
-                    // //设置为开局状态
-                    // roomInfo.status = 1;
-                    // //重置底分
-                    // roomInfo.bottomCoin = 1;
-                    // //重置锅底
-                    // roomInfo.coinPool = 0;
-                    // //重置用户的信息
-                    // for (let i = 0; i < userNumber; i++) {
-                    //     flowerUserList[i].cardStatus = 0; //设置还未看牌
-                    //     flowerUserList[i].liveStatus = 1; //设置存活
-                    //     flowerUserList[i].card.splice(0, flowerUserList[i].card.length);
-                    //     //发牌
-                    //     let pockers = pockerFun.creatPoker()
-                    //     let lastCards = 52;
-                    //     lastCards = lastCards - userNumber * 3;
-                    //     while (pockers.length > lastCards) {
-                    //         //只要牌堆的牌大于应该剩余牌数，玩家继续摸牌
-                    //         for (let i = 0; i < userNumber; i++) {
-                    //             //玩家轮流摸牌
-                    //             flowerUserList[i].card.push(pockers.pop());
-                    //         }
-                    //     }
-                    //     flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card);
-                    // }
-                    // //设置上一局的赢家的下家为先手
-                    // let newActiveUser =
-                    //     flowerUserList[
-                    //     (roomInfo.lastWinner.id + 1) % userNumber
-                    //     ];
-                    // roomInfo.activeUser.username = newActiveUser.username;
-                    // roomInfo.activeUser.id = newActiveUser.id;
-
-                    // room.roomInfo = roomInfo
-                    // room.flowerUserList = flowerUserList
-
-
-
                     let newRoom = beginNewGame(room)
                     room.roomInfo = newRoom.roomInfo
                     room.flowerUserList = newRoom.flowerUserList
@@ -340,19 +236,6 @@ io.sockets.on('connection', (socket) => {
         })
     })
 
-    //存活玩家数量
-    socket.on('aliveNumber', data => {
-        io.sockets.in("room-" + data.roomId).emit('aliveNumber', data.aliveNumber);
-        // socket.emit('aliveNumber', data)
-        // socket.broadcast.emit('aliveNumber', data)
-    })
-
-    //等待比较状态
-    socket.on('chooseStatus', data => {
-        io.sockets.in("room-" + data.roomId).emit('chooseStatus', 2);
-        // socket.emit('chooseStatus', data)
-        // socket.broadcast.emit('chooseStatus', data)
-    })
 
     //比牌结果
     socket.on('contrastResult', data => {
@@ -436,51 +319,9 @@ io.sockets.on('connection', (socket) => {
 
                     //五秒后开始下一局
                     setTimeout(() => {
-                        // //局数加1
-                        // roomInfo.gamesNumber += 1;
-                        // //设置存活玩家数量
-                        // roomInfo.aliveNumber = userNumber;
-                        // //设置为开局状态
-                        // roomInfo.status = 1;
-                        // //重置底分
-                        // roomInfo.bottomCoin = 1;
-                        // //重置锅底
-                        // roomInfo.coinPool = 0;
-                        // //重置用户的信息
-                        // for (let i = 0; i < userNumber; i++) {
-                        //     flowerUserList[i].cardStatus = 0; //设置还未看牌
-                        //     flowerUserList[i].liveStatus = 1; //设置存活
-                        //     flowerUserList[i].card.splice(0, flowerUserList[i].card.length);
-                        //     //发牌
-                        //     let pockers = pockerFun.creatPoker()
-                        //     let lastCards = 52;
-                        //     lastCards = lastCards - userNumber * 3;
-                        //     while (pockers.length > lastCards) {
-                        //         //只要牌堆的牌大于应该剩余牌数，玩家继续摸牌
-                        //         for (let i = 0; i < userNumber; i++) {
-                        //             //玩家轮流摸牌
-                        //             flowerUserList[i].card.push(pockers.pop());
-                        //         }
-                        //     }
-                        //     flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card);
-                        // }
-                        // //设置上一局的赢家的下家为先手
-                        // let newActiveUser =
-                        //     flowerUserList[
-                        //     (roomInfo.lastWinner.id + 1) % userNumber
-                        //     ];
-                        // roomInfo.activeUser.username = newActiveUser.username;
-                        // roomInfo.activeUser.id = newActiveUser.id;
-
-                        // room.roomInfo = roomInfo
-                        // room.flowerUserList = flowerUserList
-
-
                         let newRoom = beginNewGame(room)
                         room.roomInfo = newRoom.roomInfo
                         room.flowerUserList = newRoom.flowerUserList
-
-
 
                         // 更新数据的条件查询
                         var wherestr = { 'roomId': data.roomId };
@@ -563,48 +404,6 @@ io.sockets.on('connection', (socket) => {
                     })
                     //五秒后开始下一局
                     setTimeout(() => {
-                        // //局数加1
-                        // roomInfo.gamesNumber += 1;
-                        // //设置存活玩家数量
-                        // aliveNumber = userNumber;
-                        // //设置为开局状态
-                        // roomInfo.status = 1;
-                        // //重置底分
-                        // roomInfo.bottomCoin = 1;
-                        // //重置锅底
-                        // roomInfo.coinPool = 0;
-                        // //重置用户的信息
-                        // for (let i = 0; i < userNumber; i++) {
-                        //     flowerUserList[i].cardStatus = 0; //设置还未看牌
-                        //     flowerUserList[i].liveStatus = 1; //设置存活
-                        //     flowerUserList[i].card.splice(0, flowerUserList[i].card.length);
-                        //     //发牌
-                        //     let pockers = pockerFun.creatPoker()
-                        //     let lastCards = 52;
-                        //     lastCards = lastCards - userNumber * 3;
-                        //     while (pockers.length > lastCards) {
-                        //         //只要牌堆的牌大于应该剩余牌数，玩家继续摸牌
-                        //         for (let i = 0; i < userNumber; i++) {
-                        //             //玩家轮流摸牌
-                        //             flowerUserList[i].card.push(pockers.pop());
-                        //         }
-                        //     }
-                        //     flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card);
-                        // }
-                        // //设置上一局的赢家的下家为先手
-                        // let newActiveUser =
-                        //     flowerUserList[
-                        //     (roomInfo.lastWinner.id + 1) % userNumber
-                        //     ];
-                        // roomInfo.activeUser.username = newActiveUser.username;
-                        // roomInfo.activeUser.id = newActiveUser.id;
-
-                        // room.roomInfo = roomInfo
-                        // room.flowerUserList = flowerUserList
-
-
-
-
                         let newRoom = beginNewGame(room)
                         room.roomInfo = newRoom.roomInfo
                         room.flowerUserList = newRoom.flowerUserList
@@ -647,30 +446,6 @@ io.sockets.on('connection', (socket) => {
                 }
             }
         })
-
-
-        // io.sockets.in("room-" + data.roomId).emit('contrastResult', data.result);
-        // socket.emit('contrastResult', data)
-        // socket.broadcast.emit('contrastResult', data)
-    })
-
-    //当前局结束
-    socket.on('nowGameEnd', data => {
-
-        io.sockets.in("room-" + data.roomId).emit('nowGameEnd', data.lastWinner);
-        // socket.emit('nowGameEnd', data)
-        // socket.broadcast.emit('nowGameEnd', data)
-    })
-
-    //开始新的一局
-    socket.on('startNewGame', data => {
-        socket.emit('startNewGame', data)
-        socket.broadcast.emit('startNewGame', data)
-    })
-
-    //非首局发牌
-    socket.on("sendNewCards", data => {
-        io.sockets.in("room-" + data.roomId).emit('sendNewCards', data.flowerUserList);
     })
 
     //跟注
@@ -750,25 +525,57 @@ io.sockets.on('connection', (socket) => {
             })
         })
 
-
-        // io.sockets.in("room-" + data.roomId).emit('follow', data.coinNum);
-        // socket.emit('follow', data)
-        // socket.broadcast.emit('follow', data)
-    })
-
-    //底分
-    socket.on('bottomCoin', data => {
-        // io.sockets.in("room-" + data.roomId).emit('bottomCoin', data.bottomCoin);
-        // socket.emit('bottomCoin', data)
-        // socket.broadcast.emit('bottomCoin', data)
-    })
-
-    //锅里的钱
-    socket.on('coinPool', data => {
-        io.sockets.in("room-" + data.roomId).emit('coinPool', data.coinPool);
-        // socket.emit('coinPool', coinPool)
-        // socket.broadcast.emit('coinPool', coinPool)
     })
 });
+
+//开启新的一局
+function beginNewGame(room) {
+    let roomInfo = room.roomInfo;
+    let flowerUserList = room.flowerUserList
+    let activeUserId = room.roomInfo.activeUser.id;
+    let userNumber = room.flowerUserList.length;
+
+    //局数加1
+    roomInfo.gamesNumber += 1;
+    //设置存活玩家数量
+    roomInfo.aliveNumber = userNumber;
+    //设置为开局状态
+    roomInfo.status = 1;
+    //重置底分
+    roomInfo.bottomCoin = 1;
+    //重置锅底
+    roomInfo.coinPool = 0;
+    //发牌
+    for (let i = 0; i < userNumber; i++) {
+        flowerUserList[i].card.splice(0, flowerUserList[i].card.length);
+    }
+    let pockers = pockerFun.creatPoker()
+    let lastCards = 52;
+    lastCards = lastCards - userNumber * 3;
+    while (pockers.length > lastCards) {
+        //只要牌堆的牌大于应该剩余牌数，玩家继续摸牌
+        for (let i = 0; i < userNumber; i++) {
+            //玩家轮流摸牌
+            flowerUserList[i].card.push(pockers.pop());
+        }
+    }
+    //重置用户的信息
+    for (let i = 0; i < userNumber; i++) {
+        flowerUserList[i].cardStatus = 0; //设置还未看牌
+        flowerUserList[i].liveStatus = 1; //设置存活
+        flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card);
+    }
+    //设置上一局的赢家的下家为先手
+    let newActiveUser =
+        flowerUserList[
+        (roomInfo.lastWinner.id + 1) % userNumber
+        ];
+    roomInfo.activeUser.username = newActiveUser.username;
+    roomInfo.activeUser.id = newActiveUser.id;
+
+    room.roomInfo = roomInfo
+    room.flowerUserList = flowerUserList
+    return room
+}
 
 module.exports = io
