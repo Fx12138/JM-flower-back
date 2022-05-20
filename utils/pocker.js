@@ -28,7 +28,7 @@ function creatPoker() {
                 name: forColor + forNum,
                 order: i * 4 + j,
                 power: i,
-                // path: "./cards/" + (i + 2) + "_" + (j + 1) + ".jpg",
+                // path: "/static/images/cards/" + (i + 2) + "_" + (j + 1) + ".jpg",
                 path: "../../assets/images/cards/" + (i + 2) + "_" + (j + 1) + ".jpg",
             });
         }

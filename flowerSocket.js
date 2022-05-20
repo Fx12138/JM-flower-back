@@ -39,10 +39,8 @@ io.sockets.on('connection', (socket) => {
         io.nsps['/'].adapter.rooms["room-" + data.roomId];
         socket.join("room-" + data.roomId);
         let newUser = data.userInfo
-        let flowerUserList = []
         FlowerRoom.findOne({ roomId: data.roomId }).then((room) => {
-            flowerUserList = room.flowerUserList
-            io.sockets.in("room-" + data.roomId).emit('inFlowerRoom', resJson({ flowerUserList, newUser }));
+            io.sockets.in("room-" + data.roomId).emit('inFlowerRoom', resJson({ room, newUser }));
 
         })
     })
@@ -125,11 +123,14 @@ io.sockets.on('connection', (socket) => {
             roomInfo = room.roomInfo;
             bottomCoin = roomInfo.bottomCoin;
             activeUserId = roomInfo.activeUser.id
+            activeUser = flowerUserList.filter((user) => {
+                return user.id == activeUserId
+            })[0]
+            activeUser.cardStatus = 1
             flowerUserList.filter((user) => {
                 return user.id == activeUserId
             })[0].cardStatus = 1
 
-            // activeUser.cardStatus = 1
             room.roomInfo = roomInfo
             room.flowerUserList = flowerUserList
 
@@ -140,6 +141,7 @@ io.sockets.on('connection', (socket) => {
 
             FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
                 io.sockets.in("room-" + data.roomId).emit('seeCard', room);
+                io.to(userSocketMap.get(activeUser.username)).emit('showCards', { activeUser, room });
             })
         })
     })
@@ -202,6 +204,7 @@ io.sockets.on('connection', (socket) => {
                     }
                 });
                 roomInfo.coinPool = 0; //锅里的钱置零
+                roomInfo.status = 3; //房间状态改为暂时结束
 
                 room.roomInfo = roomInfo
                 room.flowerUserList = flowerUserList
@@ -258,9 +261,15 @@ io.sockets.on('connection', (socket) => {
 
             let result = null;
             //发起比牌用户
-            let contrastinger = data.contrastinger;
+            let contrastinger = room.flowerUserList.filter(user => {
+                return user.id == data.contrastinger.id
+            })
             //被比较用户
-            let contrasteder = data.contrasteder;
+            let contrasteder = room.flowerUserList.filter(user => {
+                return user.id == data.contrasteder.id
+            })
+            console.log(contrastinger.card);
+            console.log(contrasteder.card);
 
             //不管谁的牌大,发起比牌的都要减钱
             flowerUserList.filter(user => {
@@ -310,6 +319,7 @@ io.sockets.on('connection', (socket) => {
                         }
                     });
                     roomInfo.coinPool = 0; //锅里的钱置零
+                    roomInfo.status = 3; //房间状态改为暂时结束
 
                     room.roomInfo = roomInfo
                     room.flowerUserList = flowerUserList
@@ -395,6 +405,7 @@ io.sockets.on('connection', (socket) => {
                         }
                     });
                     roomInfo.coinPool = 0; //锅里的钱置零
+                    roomInfo.status = 3; //房间状态改为暂时结束
 
                     room.roomInfo = roomInfo
                     room.flowerUserList = flowerUserList
