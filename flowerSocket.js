@@ -260,14 +260,15 @@ io.sockets.on('connection', (socket) => {
             activeUserId = roomInfo.activeUser.id
 
             let result = null;
+
             //发起比牌用户
             let contrastinger = room.flowerUserList.filter(user => {
-                return user.id == data.contrastinger.id
-            })
+                return user.username == data.contrastinger.username
+            })[0]
             //被比较用户
             let contrasteder = room.flowerUserList.filter(user => {
-                return user.id == data.contrasteder.id
-            })
+                return user.username == data.contrasteder.username
+            })[0]
             console.log(contrastinger.card);
             console.log(contrasteder.card);
 
