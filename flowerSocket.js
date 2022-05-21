@@ -204,7 +204,10 @@ io.sockets.on('connection', (socket) => {
                     }
                 });
                 roomInfo.coinPool = 0; //锅里的钱置零
-                roomInfo.status = 3; //房间状态改为暂时结束
+                roomInfo.status = 4; //房间状态改为暂时结束
+
+                roomInfo.activeUser.id = null
+                roomInfo.activeUser.username = "等待玩家"
 
                 room.roomInfo = roomInfo
                 room.flowerUserList = flowerUserList
@@ -241,9 +244,25 @@ io.sockets.on('connection', (socket) => {
 
     //等待比较状态
     socket.on('chooseStatus', data => {
-        io.sockets.in("room-" + data.roomId).emit('chooseStatus', 2);
+        FlowerRoom.findOne({ roomId: data.roomId }).then((room) => {
+            room.roomInfo.status = 2
+            // 更新数据的条件查询
+            var wherestr = { 'roomId': data.roomId };
+            // 执行更新数据
+            var updatestr = { 'roomInfo': room.roomInfo };
+            FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
+                io.sockets.in("room-" + data.roomId).emit('chooseStatus', 2);
+            })
+
+        })
+
         // socket.emit('chooseStatus', data)
         // socket.broadcast.emit('chooseStatus', data)
+    })
+
+    //将所有组件的房间信息置为3 等待比牌状态
+    socket.on('waitContrastResult', data => {
+        io.sockets.in("room-" + data.roomId).emit('cancelCountTime', 3);
     })
 
     //比牌结果
@@ -265,12 +284,18 @@ io.sockets.on('connection', (socket) => {
             let contrastinger = room.flowerUserList.filter(user => {
                 return user.username == data.contrastinger.username
             })[0]
+            //发起比牌的用户的看牌状态设置为1
+            contrastinger.cardStatus = 1
+
+            //让发起比牌的用户看到自己的牌
+            // io.to(userSocketMap.get(contrastinger.username)).emit('showCards', { "activeUser": contrastinger, room });
+
             //被比较用户
             let contrasteder = room.flowerUserList.filter(user => {
                 return user.username == data.contrasteder.username
             })[0]
-            console.log(contrastinger.card);
-            console.log(contrasteder.card);
+            //在被比牌用户的可看牌用户中加入发起比牌用户的用户名
+            contrasteder.showCardsIdList.push(contrastinger.username)
 
             //不管谁的牌大,发起比牌的都要减钱
             flowerUserList.filter(user => {
@@ -320,7 +345,7 @@ io.sockets.on('connection', (socket) => {
                         }
                     });
                     roomInfo.coinPool = 0; //锅里的钱置零
-                    roomInfo.status = 3; //房间状态改为暂时结束
+                    roomInfo.status = 4; //房间状态改为暂时结束
 
                     room.roomInfo = roomInfo
                     room.flowerUserList = flowerUserList
@@ -352,6 +377,8 @@ io.sockets.on('connection', (socket) => {
                 } else {
                     //仍有玩家存活,游戏继续
 
+                    roomInfo.status = 1;    //改变房间状态为游戏正在进行
+
                     //得出下一家
                     let newActiveUserId = (activeUserId + 1) % userNumber
                     while (!flowerUserList.filter(user => {
@@ -374,7 +401,7 @@ io.sockets.on('connection', (socket) => {
                     var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
                     FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrastinger, 'loser': contrasteder, room });
+                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrastinger, 'loser': contrasteder, contrastinger, contrasteder, room });
                     })
                 }
             } else {
@@ -406,7 +433,7 @@ io.sockets.on('connection', (socket) => {
                         }
                     });
                     roomInfo.coinPool = 0; //锅里的钱置零
-                    roomInfo.status = 3; //房间状态改为暂时结束
+                    roomInfo.status = 4; //房间状态改为暂时结束
 
                     room.roomInfo = roomInfo
                     room.flowerUserList = flowerUserList
@@ -437,6 +464,8 @@ io.sockets.on('connection', (socket) => {
                 } else {
                     //仍有玩家存活,游戏继续
 
+                    roomInfo.status = 1;    //改变房间状态为游戏正在进行
+
                     //得出下一家
                     let newActiveUserId = (activeUserId + 1) % userNumber
                     while (!flowerUserList.filter(user => {
@@ -459,7 +488,7 @@ io.sockets.on('connection', (socket) => {
                     var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
                     FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrasteder, 'loser': contrastinger, room });
+                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrasteder, 'loser': contrastinger, contrastinger, contrasteder, room });
                     })
                 }
             }
@@ -553,6 +582,8 @@ function beginNewGame(room) {
     let activeUserId = room.roomInfo.activeUser.id;
     let userNumber = room.flowerUserList.length;
 
+    //房间状态改为正在进行
+    roomInfo.status = 1;
     //局数加1
     roomInfo.gamesNumber += 1;
     //设置存活玩家数量

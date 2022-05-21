@@ -5,13 +5,20 @@ var resJson = require('../doc/resJson')
 const User = require('../../models/userModel')
 
 router.post('/register', (req, res) => {
-    const newUser = new User({
-        username: req.body.username,
-        password: req.body.password
+    User.findOne({ username: req.body.username }).then((user) => {
+        if (user) {
+            return res.json("当前用户名已被注册")
+        } else {
+            const newUser = new User({
+                username: req.body.username,
+                password: req.body.password
+            })
+            newUser.save().then(() => {
+                return res.json("注册成功")
+            })
+        }
     })
-    newUser.save().then(() => {
-        res.send('注册用户成功')
-    })
+
 })
 //登录
 router.post('/login', (req, res) => {

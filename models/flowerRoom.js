@@ -16,7 +16,7 @@ var roomSchema = new Schema({
         status: {
             type: Number,
             default: 0
-        }, //开局状态,0未开局,1已开局,2比牌等待选择
+        }, //开局状态,0未开局,1已开局,2比牌等待选择 3比牌过程中 4当前局结束 准备开始新的一局
         activeUser: {
             id: {
                 type: Number,
@@ -97,6 +97,10 @@ var roomSchema = new Schema({
                 type: Number,
                 default: 0
             },
+            showCardsIdList: {
+                type: Array,
+                default: []
+            }
 
         },
     ]
