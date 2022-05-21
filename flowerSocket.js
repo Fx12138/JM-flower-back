@@ -142,7 +142,7 @@ io.sockets.on('connection', (socket) => {
             var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
             FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-                io.sockets.in("room-" + data.roomId).emit('seeCard', room);
+                io.sockets.in("room-" + data.roomId).emit('seeCard', { room, "isContrast": data.isContrast });
                 io.to(userSocketMap.get(activeUser.username)).emit('showCards', { activeUser, room });
             })
         })
