@@ -2,7 +2,7 @@
 //创建牌
 function creatPoker() {
     let pokers = [];
-    let color = ["黑桃", "红桃", "梅花", "方块"];
+    let color = ["♠", "♥", "♣", "♦"];
     let number = [
         "2",
         "3",

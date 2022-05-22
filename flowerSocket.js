@@ -309,6 +309,13 @@ io.sockets.on('connection', (socket) => {
 
             //不管谁的牌大,锅里都要加钱
             roomInfo.coinPool += roomInfo.bottomCoin * 2;
+
+
+            //把被比较用户的牌发给发起比牌的用户
+
+            io.to(userSocketMap.get(contrastinger.username)).emit('showCards', { contrasteder, room });
+
+
             if (contrastinger.cardType < contrasteder.cardType) {
                 //用户1的牌大
                 result = true;
@@ -369,7 +376,7 @@ io.sockets.on('connection', (socket) => {
                     setTimeout(() => {
                         //提示即将开始下一局
                         io.sockets.in("room-" + data.roomId).emit('nowGameEnd', { room, 'loser': contrasteder, "contrastinger": contrastinger, "contrasteder": contrasteder, });
-                    }, 6000);
+                    }, 5500);
 
                     //五秒后开始下一局
                     setTimeout(() => {
@@ -465,7 +472,7 @@ io.sockets.on('connection', (socket) => {
                     setTimeout(() => {
                         //提示即将开始下一局
                         io.sockets.in("room-" + data.roomId).emit('nowGameEnd', { room, 'loser': contrastinger, "contrastinger": contrastinger, "contrasteder": contrasteder, });
-                    }, 7000);
+                    }, 5500);
 
                     //五秒后开始下一局
                     setTimeout(() => {
@@ -481,7 +488,7 @@ io.sockets.on('connection', (socket) => {
                         FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
                             io.sockets.in("room-" + data.roomId).emit('sendNewCards', room);
                         })
-                    }, 10000);
+                    }, 9000);
                 } else {
                     //仍有玩家存活,游戏继续
 
