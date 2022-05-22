@@ -596,7 +596,8 @@ io.sockets.on('connection', (socket) => {
 
             FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
 
-                io.sockets.in("room-" + data.roomId).emit('follow', room);
+                io.sockets.in("room-" + data.roomId).emit('follow', { room, coinNum });
+
             })
         })
 
