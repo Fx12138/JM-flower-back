@@ -263,14 +263,11 @@ io.sockets.on('connection', (socket) => {
             })
 
         })
-
-        // socket.emit('chooseStatus', data)
-        // socket.broadcast.emit('chooseStatus', data)
     })
 
     //将所有组件的房间信息置为3 等待比牌状态
     socket.on('waitContrastResult', data => {
-        io.sockets.in("room-" + data.roomId).emit('cancelCountTime', 3);
+        io.sockets.in("room-" + data.roomId).emit('cancelCountTime', data);
     })
 
     //比牌结果
@@ -367,8 +364,12 @@ io.sockets.on('connection', (socket) => {
                     var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
                     FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-                        io.sockets.in("room-" + data.roomId).emit('nowGameEnd', { room, 'loser': contrasteder });
+                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrastinger, 'loser': contrasteder, "contrastinger": contrastinger, "contrasteder": contrasteder, room });
                     })
+                    setTimeout(() => {
+                        //提示即将开始下一局
+                        io.sockets.in("room-" + data.roomId).emit('nowGameEnd', { room, 'loser': contrasteder, "contrastinger": contrastinger, "contrasteder": contrasteder, });
+                    }, 6000);
 
                     //五秒后开始下一局
                     setTimeout(() => {
@@ -385,7 +386,7 @@ io.sockets.on('connection', (socket) => {
                             io.sockets.in("room-" + data.roomId).emit('sendNewCards', room);
 
                         })
-                    }, 5000);
+                    }, 9000);
                 } else {
                     //仍有玩家存活,游戏继续
 
@@ -413,7 +414,7 @@ io.sockets.on('connection', (socket) => {
                     var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
                     FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrastinger, 'loser': contrasteder, contrastinger, contrasteder, room });
+                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrastinger, 'loser': contrasteder, "contrastinger": contrastinger, "contrasteder": contrasteder, room });
                     })
                 }
             } else {
@@ -459,9 +460,13 @@ io.sockets.on('connection', (socket) => {
                     var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
                     FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-
-                        io.sockets.in("room-" + data.roomId).emit('nowGameEnd', { room, 'loser': contrastinger });
+                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrasteder, 'loser': contrastinger, "contrastinger": contrastinger, "contrasteder": contrasteder, room });
                     })
+                    setTimeout(() => {
+                        //提示即将开始下一局
+                        io.sockets.in("room-" + data.roomId).emit('nowGameEnd', { room, 'loser': contrastinger, "contrastinger": contrastinger, "contrasteder": contrasteder, });
+                    }, 7000);
+
                     //五秒后开始下一局
                     setTimeout(() => {
                         hasAddWinnerCoin = false
@@ -476,7 +481,7 @@ io.sockets.on('connection', (socket) => {
                         FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
                             io.sockets.in("room-" + data.roomId).emit('sendNewCards', room);
                         })
-                    }, 5000);
+                    }, 10000);
                 } else {
                     //仍有玩家存活,游戏继续
 
@@ -504,7 +509,7 @@ io.sockets.on('connection', (socket) => {
                     var updatestr = { 'flowerUserList': flowerUserList, 'roomInfo': roomInfo };
 
                     FlowerRoom.findOneAndUpdate(wherestr, updatestr, (err, result) => {
-                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrasteder, 'loser': contrastinger, contrastinger, contrasteder, room });
+                        io.sockets.in("room-" + data.roomId).emit('contrastResult', { 'winner': contrasteder, 'loser': contrastinger, "contrastinger": contrastinger, "contrasteder": contrasteder, room });
                     })
                 }
             }
