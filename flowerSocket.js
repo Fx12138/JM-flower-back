@@ -78,7 +78,7 @@ io.sockets.on('connection', (socket) => {
             }
             for (let i = 0; i < flowerUserList.length; i++) {
                 flowerUserList[i].coin = -1
-                flowerUserList[i].isDown = -1
+                flowerUserList[i].isDown = 1
                 flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card)
                 flowerUserList[i].liveStatus = 1
             }
@@ -231,7 +231,6 @@ io.sockets.on('connection', (socket) => {
 
                 //五秒后开始下一局
                 setTimeout(() => {
-                    hasAddWinnerCoin = false
                     let newRoom = beginNewGame(room)
                     room.roomInfo = newRoom.roomInfo
                     room.flowerUserList = newRoom.flowerUserList
@@ -292,9 +291,20 @@ io.sockets.on('connection', (socket) => {
             //发起比牌的用户的看牌状态设置为1
             contrastinger.cardStatus = 1
 
-            //让发起比牌的用户看到自己的牌
-            // io.to(userSocketMap.get(contrastinger.username)).emit('showCards', { "activeUser": contrastinger, room });
-
+            //判断发起比牌用户的看牌状态
+            //不管谁的牌大,发起比牌的都要减钱
+            //不管谁的牌大,锅里都要加钱
+            if (contrastinger.cardStatus) {
+                //已看牌,则减去底分*2
+                contrastinger.coin -= roomInfo.bottomCoin * 2
+                roomInfo.coinPool += roomInfo.bottomCoin * 2;
+                contrastinger.isDown += roomInfo.bottomCoin * 2
+            } else {
+                //未看牌则减去底分
+                contrastinger.coin -= roomInfo.bottomCoin
+                roomInfo.coinPool += roomInfo.bottomCoin
+                contrastinger.isDown += roomInfo.bottomCoin
+            }
             //被比较用户
             let contrasteder = room.flowerUserList.filter(user => {
                 return user.username == data.contrasteder.username
@@ -302,17 +312,7 @@ io.sockets.on('connection', (socket) => {
             //在被比牌用户的可看牌用户中加入发起比牌用户的用户名
             contrasteder.showCardsIdList.push(contrastinger.username)
 
-            //不管谁的牌大,发起比牌的都要减钱
-            flowerUserList.filter(user => {
-                return user.username == contrastinger.username
-            })[0].coin -= roomInfo.bottomCoin * 2
-
-            //不管谁的牌大,锅里都要加钱
-            roomInfo.coinPool += roomInfo.bottomCoin * 2;
-
-
             //把被比较用户的牌发给发起比牌的用户
-
             io.to(userSocketMap.get(contrastinger.username)).emit('showCards', { contrasteder, room });
 
 
@@ -333,7 +333,6 @@ io.sockets.on('connection', (socket) => {
                 //存活玩家数量减一
                 roomInfo.aliveNumber -= 1
 
-
                 //将当前用户存活状态置为1,存活
                 contrastinger.liveStatus = 1;
 
@@ -350,9 +349,12 @@ io.sockets.on('connection', (socket) => {
                     //求得赢家id
                     flowerUserList.forEach((user) => {
                         if (user.liveStatus) {
+                            console.log(user.username);
+
                             //赢家
                             roomInfo.lastWinner.id = user.id; //设为最近的赢家
                             roomInfo.lastWinner.username = user.username;
+                            console.log("hasAddWinnerCoin", hasAddWinnerCoin);
                             if (!hasAddWinnerCoin) {
                                 user.coin += roomInfo.coinPool;
                                 hasAddWinnerCoin = true
@@ -380,7 +382,6 @@ io.sockets.on('connection', (socket) => {
 
                     //五秒后开始下一局
                     setTimeout(() => {
-                        hasAddWinnerCoin = false
                         let newRoom = beginNewGame(room)
                         room.roomInfo = newRoom.roomInfo
                         room.flowerUserList = newRoom.flowerUserList
@@ -446,9 +447,11 @@ io.sockets.on('connection', (socket) => {
                     //求得赢家id
                     flowerUserList.forEach((user) => {
                         if (user.liveStatus) {
+                            console.log("hasAddWinnerCoin", hasAddWinnerCoin);
                             //赢家
                             roomInfo.lastWinner.id = user.id; //设为最近的赢家
                             roomInfo.lastWinner.username = user.username;
+                            console.log("hasAddWinnerCoin", hasAddWinnerCoin);
                             if (!hasAddWinnerCoin) {
                                 user.coin += roomInfo.coinPool;
                                 hasAddWinnerCoin = true
@@ -476,7 +479,6 @@ io.sockets.on('connection', (socket) => {
 
                     //五秒后开始下一局
                     setTimeout(() => {
-                        hasAddWinnerCoin = false
                         let newRoom = beginNewGame(room)
                         room.roomInfo = newRoom.roomInfo
                         room.flowerUserList = newRoom.flowerUserList
@@ -623,9 +625,11 @@ function beginNewGame(room) {
     roomInfo.bottomCoin = 1;
     //重置锅底
     roomInfo.coinPool = 3;
+    hasAddWinnerCoin = false
 
     //发牌
     for (let i = 0; i < userNumber; i++) {
+        //把牌置零
         flowerUserList[i].card.splice(0, flowerUserList[i].card.length);
     }
     let pockers = pockerFun.creatPoker()
@@ -643,6 +647,7 @@ function beginNewGame(room) {
         flowerUserList[i].cardStatus = 0; //设置还未看牌
         flowerUserList[i].liveStatus = 1; //设置存活
         flowerUserList[i].showCardsIdList = []  //可看牌用户列表清空
+        flowerUserList[i].isDown = 1   //把已下置为负一
         flowerUserList[i].coin -= 1   //所有用户的金币减一个底
         flowerUserList[i].cardType = judgeFun.judge(flowerUserList[i].card);
     }
